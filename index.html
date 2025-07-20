@@ -84,7 +84,7 @@
             <p class="text-center text-gray-600 mt-2 mb-6">Describe a challenge your team is facing, and our AI will suggest relevant courses from our library.</p>
             <div class="max-w-xl mx-auto">
                 <div class="flex flex-col sm:flex-row gap-2">
-                    <input type="text" id="challenge-input" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FCA311]" placeholder="e.g., 'Our sales team needs to improve closing rates.'">
+                    <input type="text" id="challenge-input" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FCA311]" placeholder="e.g., 'how to create an inclusive workplace'">
                     <button id="get-recs-button" class="w-full sm:w-auto bg-[#005A9C] text-white font-bold py-3 px-6 rounded-lg hover:bg-[#00487C] transition-colors duration-300">Get Recommendations</button>
                 </div>
                 <div id="recommendations-result" class="mt-6 min-h-[100px]"></div>
@@ -108,226 +108,237 @@
 
     <!-- Modal Structure -->
     <div id="course-modal" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center p-4 hidden z-50">
-        <div class="bg-white rounded-lg shadow-xl p-6 max-w-md w-full relative">
-            <button id="close-modal" class="absolute top-2 right-3 text-gray-500 hover:text-gray-800 text-3xl font-bold">&times;</button>
-            <h3 id="modal-title" class="text-2xl font-bold text-[#005A9C] mb-2">Course Title</h3>
-            <p id="modal-description" class="text-gray-700 mb-6">Course description goes here.</p>
-            <a id="modal-video-link" href="#" target="_blank" class="inline-block w-full text-center bg-[#FCA311] text-[#005A9C] font-bold py-3 px-5 rounded-lg hover:bg-yellow-400 transition-colors">Watch Preview in New Tab</a>
+        <div class="bg-white rounded-lg shadow-xl p-6 max-w-3xl w-full relative flex flex-col max-h-[90vh]">
+            <button id="close-modal" class="absolute top-2 right-3 text-gray-500 hover:text-gray-800 text-3xl font-bold z-10">&times;</button>
+            <div class="flex-shrink-0">
+                <h3 id="modal-title" class="text-2xl font-bold text-[#005A9C] mb-2">Course Title</h3>
+                <p id="modal-description" class="text-gray-700 mb-4">Course description goes here.</p>
+            </div>
+            <div class="flex-grow bg-black rounded-lg overflow-hidden">
+                <iframe id="modal-video-iframe" class="w-full h-full" src="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+            </div>
         </div>
     </div>
 
     <script>
-        const courseData = {
-            "Basic Communication Skills": "https://drive.google.com/file/d/1PC9FJEkJHJGIKKSsf4eM86SkXeYY7K0c/view?usp=sharing",
-            "Business Correspondence": "https://drive.google.com/file/d/1PKb9DFz2L2GuSDvag_S88tHvW5NCthEg/view?usp=sharing",
-            "Communicating For Success": "https://drive.google.com/file/d/1Peo0WQ02pNo12I4AZi9x6MTuNMe-e7FY/view?usp=sharing",
-            "Communication Skill Improving Grammar": "https://drive.google.com/file/d/1PMLZpj-Djpn9bcPzIIOqquMTFpyH8xmm/view?usp=sharing",
-            "Effective Communication Skills": "https://drive.google.com/file/d/1TnNH9NzUpuGrk7L2JXknkhOzZ7QtuFN7/view?usp=sharing",
-            "Effective Listening Skills": "https://drive.google.com/file/d/1T17uzgYfJVIfrIp7aT_khWbHzHb_2Jch/view?usp=sharing",
-            "Effective Presentation Design": "https://drive.google.com/file/d/1Xv7To-FBiEXod7_irMYy2sHxY3JRW2j1/view?usp=sharing",
-            "Email Etiquette": "https://drive.google.com/file/d/1PXINEKPO1-2sW_iGjg_xT31tJt9xK3B8/view?usp=sharing",
-            "Interpersonal Skills": "https://drive.google.com/file/d/1XmN9O-r_s7t6u5v4w3x2y1z0a_b_c/view?usp=sharing",
-            "Negotiation Skills": "https://drive.google.com/file/d/1XoP9Q-t_u5v4w3x2y1z0a_b_c_d/view?usp=sharing",
-            "Presentation Skills": "https://drive.google.com/file/d/1XqR9S-v_w3x2y1z0a_b_c_d_e/view?usp=sharing",
-            "Public Speaking": "https://drive.google.com/file/d/1XsT9U-x_y1z0a_b_c_d_e_f/view?usp=sharing",
-            "Telephone Etiquette": "https://drive.google.com/file/d/1XuV9W-z_0a_b_c_d_e_f_g/view?usp=sharing",
-            "The Art Of Story Telling": "https://drive.google.com/file/d/1XwX9Y-a_b_c_d_e_f_g_h/view?usp=sharing",
-            "Transactional Analysis": "https://drive.google.com/file/d/1XyZ9A-b_c_d_e_f_g_h_i/view?usp=sharing",
-            "Verbal & Non Verbal Communication": "https://drive.google.com/file/d/1X-a9B-c_d_e_f_g_h_i_j/view?usp=sharing",
-            "Written Communication Skills": "https://drive.google.com/file/d/1Y0b9C-d_e_f_g_h_i_j_k/view?usp=sharing",
-            "Excellence In Customer Service": "https://drive.google.com/file/d/1XgG9B-o_y7h5y3r_b4c5k6l7m8n9o0p/view?usp=sharing",
-            "Handling Customer Complaints": "https://drive.google.com/file/d/1XjK9L-p_q9r8s7t6u5v4w3x2y1z0a_b/view?usp=sharing",
-            "Customer Relationship Management": "https://drive.google.com/file/d/1Tq3a_O3Yg9C-g2k-H5w_4x3z2y1v0u_t/view?usp=sharing",
-            "Customer Service Training": "https://drive.google.com/file/d/1Tr4b_P4Zh-d1j-I6x_5y4a3b2c1w0v_u/view?usp=sharing",
-            "Building & Leading Teams": "https://drive.google.com/file/d/1Ts5c_Q5Ai-e2k-J7y_6z5b4c3d2x1w_v/view?usp=sharing",
-            "Coaching & Mentoring": "https://drive.google.com/file/d/1Tt6d_R6Bj-f3l-K8z_7a6b5d4e3y2x_w/view?usp=sharing",
-            "Delegation Skills": "https://drive.google.com/file/d/1Tu7e_S7Ck-g4m-L9a_8b7c6e5f4z3y_x/view?usp=sharing",
-            "Developing High Performing Teams": "https://drive.google.com/file/d/1Tv8f_T8Dl-h5n-M-a_9c8d7f6g5a4z_y/view?usp=sharing",
-            "Giving & Receiving Feedback": "https://drive.google.com/file/d/1Tw9g_U9Em-i6o-N-b_a-d9e8g7h6b5a_z/view?usp=sharing",
-            "Leadership Skills": "https://drive.google.com/file/d/1Tx-h_V-Fm-j7p-O-c_b-e-f-h-i-j-k/view?usp=sharing",
-            "Managerial Effectiveness": "https://drive.google.com/file/d/1Ty_i_W-Gn-k8q-P-d_c_f-g-i-j-k-l/view?usp=sharing",
-            "Motivation Skills": "https://drive.google.com/file/d/1Tz_j_X-Ho-l9r-Q-e_d_g-h-j-k-l-m/view?usp=sharing",
-            "Performance Management": "https://drive.google.com/file/d/1U0_k_Y-Ip-m-s-R-f_e_h-i-k-l-m-n/view?usp=sharing",
-            "Problem Solving": "https://drive.google.com/file/d/1U1_l_Z-Jq-n-t-S-g_f_i-j-l-m-n-o/view?usp=sharing",
-            "Supervisory Skills": "https://drive.google.com/file/d/1U2_m_A-Kr-o-u-T-h_g_j-k-m-n-o-p/view?usp=sharing",
-            "Team Building": "https://drive.google.com/file/d/1U3_n_B-Ls-p-v-U-i_h_k-l-n-o-p-q/view?usp=sharing",
-            "The Situational Leader": "https://drive.google.com/file/d/1U4_o_C-Mt-q-w-V-j_i_l-m-o-p-q-r/view?usp=sharing",
-            "Train The Trainer": "https://drive.google.com/file/d/1U5_p_D-Nu-r-x-W-k_j_m-n-p-q-r-s/view?usp=sharing",
-            "Transitioning From Peer To Leader": "https://drive.google.com/file/d/1U6_q_E-Ov-s-y-X-l_k_n-o-q-r-s-t/view?usp=sharing",
-            "Women In Leadership": "https://drive.google.com/file/d/1U7_r_F-Pw-t-z-Y-m_l_o-p-r-s-t-u/view?usp=sharing",
-            "Accountability At Work": "https://drive.google.com/file/d/1Y1c9D-e_f_g_h_i_j_k_l/view?usp=sharing",
-            "Anger Management": "https://drive.google.com/file/d/1Y2d9E-f_g_h_i_j_k_l_m/view?usp=sharing",
-            "Assertiveness Training": "https://drive.google.com/file/d/1Y3e9F-g_h_i_j_k_l_m_n/view?usp=sharing",
-            "Building Self Confidence": "https://drive.google.com/file/d/1Y4f9G-h_i_j_k_l_m_n_o/view?usp=sharing",
-            "Business Etiquette": "https://drive.google.com/file/d/1Y5g9H-i_j_k_l_m_n_o_p/view?usp=sharing",
-            "Conflict Resolution": "https://drive.google.com/file/d/1Y6h9I-j_k_l_m_n_o_p_q/view?usp=sharing",
-            "Corporate Etiquette": "https://drive.google.com/file/d/1Y7i9J-k_l_m_n_o_p_q_r/view?usp=sharing",
-            "Creative Thinking": "https://drive.google.com/file/d/1Y8j9K-l_m_n_o_p_q_r_s/view?usp=sharing",
-            "Critical Thinking": "https://drive.google.com/file/d/1Y9k9L-m_n_o_p_q_r_s_t/view?usp=sharing",
-            "Dealing With Difficult People": "https://drive.google.com/file/d/1YAl9M-n_o_p_q_r_s_t_u/view?usp=sharing",
-            "Decision Making": "https://drive.google.com/file/d/1YBm9N-o_p_q_r_s_t_u_v/view?usp=sharing",
-            "Developing A Positive Attitude": "https://drive.google.com/file/d/1TdM3r-poY5LdIWIe0CdEDegtK7nw23CN/view?usp=sharing",
-            "Dealing With High Pressure Situation At Work": "https://drive.google.com/file/d/1TQjWhegVtN2Kh5bbr4POqMuX52Com0yK/view?usp=sharing",
-            "Effective Networking": "https://drive.google.com/file/d/1T5FqJKkzVGAlLJPjw0rfmEd7v8arRzy1/view?usp=sharing",
-            "Finding Balance - Art of Work life Harmony": "https://drive.google.com/file/d/1Pe9YWsGLG-CO35jt2o_oTW-UOoZ4RAqM/view?usp=sharing",
-            "Growth Mindset": "https://drive.google.com/file/d/1Phq29YtfYG0xCr_qflg-ul95T9QvIrfI/view?usp=sharing",
-            "How To Set SMART KRA's For Yourself At Work": "https://drive.google.com/file/d/1PnlYLKvirAYUI1m7Udf4t7Gr0ajp9kSA/view?usp=sharing",
-            "Increasing Your Emotional Intelligence": "https://drive.google.com/file/d/1PoAiPzWSLpBBF0OpLfPn4ltGChHmNpKd/view?usp=sharing",
-            "Johari Window": "https://drive.google.com/file/d/1PlGsi3TPyhElI-MaLk61wwN6E5QLiVlk/view?usp=sharing",
-            "Logical Thinking": "https://drive.google.com/file/d/1PlGsi3TPyhElI-MaLk61wwN6E5QLiVlk/view?usp=sharing",
-            "Personal Branding": "https://drive.google.com/file/d/1U-s_G-Qx-u-A-Z-n_m_l_k_j_i_h_g_f_e_d_c_b_a/view?usp=sharing",
-            "Personal Grooming & Etiquette": "https://drive.google.com/file/d/1U_t_H-Ry-v-B-A-o_n_m_l_k_j_i_h_g_f_e_d_c_b/view?usp=sharing",
-            "Planning & Organising": "https://drive.google.com/file/d/1V-u_I-Sz-w-C-B-p_o_n_m_l_k_j_i_h_g_f_e_d_c/view?usp=sharing",
-            "Procrastination": "https://drive.google.com/file/d/1V_v_J-Tz-x-D-C-q_p_o_n_m_l_k_j_i_h_g_f_e_d/view?usp=sharing",
-            "Stress Management": "https://drive.google.com/file/d/1W-w_K-Uz-y-E-D-r_q_p_o_n_m_l_k_j_i_h_g_f_e/view?usp=sharing",
-            "Taking Ownership": "https://drive.google.com/file/d/1W_x_L-Vz-z-F-E-s_r_q_p_o_n_m_l_k_j_i_h_g_f/view?usp=sharing",
-            "Time Management": "https://drive.google.com/file/d/1X-y_M-Wz-A-G-F-t_s_r_q_p_o_n_m_l_k_j_i_h_g/view?usp=sharing",
-            "Working In Teams": "https://drive.google.com/file/d/1X_z_N-Xz-B-H-G-u_t_s_r_q_p_o_n_m_l_k_j_i_h/view?usp=sharing",
-            "Workplace Ethics": "https://drive.google.com/file/d/1Y-A_O-Yz-C-I-H-v_u_t_s_r_q_p_o_n_m_l_k_j_i/view?usp=sharing",
-            "Advanced Sales Skills": "https://drive.google.com/file/d/1Y_B_P-Zz-D-J-I-w_v_u_t_s_r_q_p_o_n_m_l_k_j/view?usp=sharing",
-            "Basic Sales Skills": "https://drive.google.com/file/d/1Z-C_Q-Az-E-K-J-x_w_v_u_t_s_r_q_p_o_n_m_l_k/view?usp=sharing",
-            "Body Language In Sales": "https://drive.google.com/file/d/1Z_D_R-Bz-F-L-K-y_x_w_v_u_t_s_r_q_p_o_n_m_l/view?usp=sharing",
-            "Closing The Sale": "https://drive.google.com/file/d/1a-E_S-Cz-G-M-L-z_y_x_w_v_u_t_s_r_q_p_o_n_m/view?usp=sharing",
-            "Consultative Selling": "https://drive.google.com/file/d/1a_F_T-Dz-H-N-M-A_z_y_x_w_v_u_t_s_r_q_p_o_n/view?usp=sharing",
-            "Handling Objections": "https://drive.google.com/file/d/1b-G_U-Ez-I-O-N-B_A_z_y_x_w_v_u_t_s_r_q_p_o/view?usp=sharing",
-            "Key Account Management": "https://drive.google.com/file/d/1b_H_V-Fz-J-P-O-C_B_A_z_y_x_w_v_u_t_s_r_q_p/view?usp=sharing",
-            "Objection Handling": "https://drive.google.com/file/d/1c-I_W-Gz-K-Q-P-D_C_B_A_z_y_x_w_v_u_t_s_r_q/view?usp=sharing",
-            "Opening The Call": "https://drive.google.com/file/d/1c_J_X-Hz-L-R-Q-E_D_C_B_A_z_y_x_w_v_u_t_s_r/view?usp=sharing",
-            "Probing Skills": "https://drive.google.com/file/d/1d-K_Y-Iz-M-S-R-F_E_D_C_B_A_z_y_x_w_v_u_t_s/view?usp=sharing",
-            "Prospecting": "https://drive.google.com/file/d/1d_L_Z-Jz-N-T-S-G_F_E_D_C_B_A_z_y_x_w_v_u_t/view?usp=sharing",
-            "Sales Forecasting": "https://drive.google.com/file/d/1e-M_A-Kz-O-U-T-H_G_F_E_D_C_B_A_z_y_x_w_v_u/view?usp=sharing",
-            "Sales Funnel Management": "https://drive.google.com/file/d/1e_N_B-Lz-P-V-U-I_H_G_F_E_D_C_B_A_z_y_x_w_v/view?usp=sharing",
-            "Selling Skills": "https://drive.google.com/file/d/1f-O_C-Mz-Q-W-V-J_I_H_G_F_E_D_C_B_A_z_y_x_w/view?usp=sharing",
-            "SPIN Selling": "https://drive.google.com/file/d/1f_P_D-Nz-R-X-W-K_J_I_H_G_F_E_D_C_B_A_z_y_x/view?usp=sharing",
-            "Upselling & Cross Selling": "https://drive.google.com/file/d/1g-Q_E-Oz-S-Y-X-L_K_J_I_H_G_F_E_D_C_B_A_z_y/view?usp=sharing",
-            "Behavioural Event Interviewing": "https://drive.google.com/file/d/1g_R_F-Pz-T-Z-Y-M_L_K_J_I_H_G_F_E_D_C_B_A_z/view?usp=sharing",
-            "Competency Based Interviewing": "https://drive.google.com/file/d/1h-S_G-Qz-U-A-Z-N_M_L_K_J_I_H_G_F_E_D_C_B_A/view?usp=sharing",
-            "Diversity & Inclusion": "https://drive.google.com/file/d/1h_T_H-Rz-V-B-A-O_N_M_L_K_J_I_H_G_F_E_D_C_B/view?usp=sharing",
-            "Hiring The Right Talent": "https://drive.google.com/file/d/1i-U_I-Sz-W-C-B-P_O_N_M_L_K_J_I_H_G_F_E_D_C/view?usp=sharing",
-            "Interviewing Skills": "https://drive.google.com/file/d/1i_V_J-Tz-X-D-C-Q_P_O_N_M_L_K_J_I_H_G_F_E_D/view?usp=sharing",
-            "POSH": "https://drive.google.com/file/d/1j-W_K-Uz-Y-E-D-R_Q_P_O_N_M_L_K_J_I_H_G_F_E/view?usp=sharing",
-            "Unconscious Bias": "https://drive.google.com/file/d/1j_X_L-Vz-Z-F-E-S_R_Q_P_O_N_M_L_K_J_I_H_G_F/view?usp=sharing",
-            "Invisible Disability": "https://drive.google.com/file/d/1k-Y_M-Xz-C-I-H-v_u_t_s_r_q_p_o_n_m_l_k_j_i/view?usp=sharing"
-        };
-        const courseTitles = Object.keys(courseData);
+        document.addEventListener('DOMContentLoaded', () => {
+            const courseLibrary = [
+                { title: "Basic Communication Skills", synopsis: "Develop foundational skills for clear and effective verbal and written communication in a professional setting.", link: "https://drive.google.com/file/d/1PC9FJEkJHJGIKKSsf4eM86SkXeYY7K0c/view?usp=sharing" },
+                { title: "Business Correspondence", synopsis: "Master the art of writing professional emails, memos, and letters that are clear, concise, and achieve their purpose.", link: "https://drive.google.com/file/d/1PKb9DFz2L2GuSDvag_S88tHvW5NCthEg/view?usp=sharing" },
+                { title: "Communicating For Success", synopsis: "Learn advanced strategies to communicate ideas persuasively and build strong professional relationships.", link: "https://drive.google.com/file/d/1PM9PSRGGU_MyDpEWmfyjjDFXCEcgHHi8/view" },
+                { title: "Communication Skill Improving Grammar", synopsis: "Sharpen your grammar and punctuation skills to enhance clarity and professionalism in all your written communication.", link: "https://drive.google.com/file/d/1PMLZpj-Djpn9bcPzIIOqquMTFpyH8xmm/view" },
+                { title: "Effective Communication Skills", synopsis: "A comprehensive guide to mastering verbal, non-verbal, and written communication for workplace success.", link: "https://drive.google.com/file/d/1TnNH9NzUpuGrk7L2JXknkhOzZ7QtuFN7/view" },
+                { title: "Effective Listening Skills", synopsis: "Develop active listening techniques to improve understanding, build rapport, and reduce misunderstandings.", link: "https://drive.google.com/file/d/1T17uzgYfJVIfrIp7aT_khWbHzHb_2Jch/view" },
+                { title: "Effective Presentation Design", synopsis: "Learn to design visually compelling and easy-to-understand presentations that captivate your audience.", link: "https://drive.google.com/file/d/1Xv7To-FBiEXod7_irMYy2sHxY3JRW2j1/view" },
+                { title: "Email Etiquette", synopsis: "Understand the do's and don'ts of professional email to ensure your messages are always well-received.", link: "https://drive.google.com/file/d/1PXINEKPnS-B-SrzkW3Qek5Ki2QUZwakh/view?usp=drive_link" },
+                { title: "English Communication Skills For Professionals", synopsis: "Enhance your English language proficiency for a global business environment.", link: "https://drive.google.com/file/d/1Peo0WQ02pNo12I4AZi9x6MTuNMe-e7FY/view?usp=sharing" },
+                { title: "Positive Body Language", synopsis: "Learn to project confidence and build rapport through positive non-verbal cues.", link: "https://drive.google.com/file/d/1Q3F-qq8m2U0LZ-LmOxKVVG7eTqhHcDYT/view?usp=drive_link" },
+                { title: "Presentation Skills", synopsis: "Build confidence and skills to deliver engaging, persuasive, and memorable presentations.", link: "https://drive.google.com/file/d/1T1zhldalACUf_3lTELxlu2PHwtmWgZev/view?usp=drive_link" },
+                { title: "Probing Skills", synopsis: "Learn to ask effective questions to uncover customer needs and pain points.", link: "https://drive.google.com/file/d/1T81jmXBOLq4AWKBNKRHT47whiMKXuoN7/view?usp=drive_link" },
+                { title: "Speaking with Confidence", synopsis: "Develop techniques to overcome anxiety and speak with clarity and authority.", link: "https://drive.google.com/file/d/1TMQfSRbwj2bh-brczQ6dImrtYp5Yip5q/view?usp=drive_link" },
+                { title: "Building Empathy : Understanding And Connecting With Others", synopsis: "Learn to understand and share the feelings of others to build stronger, more collaborative relationships.", link: "https://drive.google.com/file/d/1PEcgbUeFkxZ365Vf52nPQ0nZrkSmefYZ/view?usp=sharing" },
+                { title: "Achieving Customer Service Excellence", synopsis: "Learn how to exceed customer expectations and provide outstanding service that builds loyalty.", link: "https://drive.google.com/file/d/1PB1IxY8GtWLF1wVLnq9OgWvEon6nmvcc/view?usp=sharing" },
+                { title: "Customer Centricity", synopsis: "Discover how to put the customer at the center of your business strategy and operations.", link: "https://drive.google.com/file/d/1TXbSu5lCyFvTI3qEfMh87JYjAKn4dQ8t/view?usp=sharing" },
+                { title: "Customer Engagement", synopsis: "Learn strategies to create meaningful interactions with customers to build lasting relationships.", link: "https://drive.google.com/file/d/1Ta56_IedxFPwTa_AslntljJQQyWq9NG9/view?usp=sharing" },
+                { title: "Customer Handling Skills", synopsis: "Develop the skills to manage a variety of customer interactions with professionalism and care.", link: "https://drive.google.com/file/d/1Tgv16qtn4_UTlxfhZHB281LfrnHD9RN1/view?usp=drive_link" },
+                { title: "Customer Service Skills", synopsis: "A foundational course on the principles and practices of providing excellent customer service.", link: "https://drive.google.com/file/d/1Tg0Sp1eQ8E2s4lpI4eU4u63y5oPvwfvE/view?usp=drive_link" },
+                { title: "Cross Cultural Communication Skills", synopsis: "Learn to communicate effectively and respectfully with people from different cultural backgrounds.", link: "https://drive.google.com/file/d/1TalsmsZv_7KytkjP-a6LhXQHGSRXhDX4/view?usp=sharing" },
+                { title: "Developing Self Awareness", synopsis: "Gain a deeper understanding of your own emotions, strengths, and weaknesses to improve personal and professional effectiveness.", link: "https://drive.google.com/file/d/1Tku5t8GIK0SW8RIsXAjgmg2-0ct8OIFi/view?usp=drive_link" },
+                { title: "Diversity and Inclusion at Work", synopsis: "Understand the value of a diverse workforce and learn strategies to promote inclusion and equity.", link: "https://drive.google.com/file/d/1TjnR9eSzAfZT6TgWjo_8vHkLu67asbWP/view?usp=drive_link" },
+                { title: "Inclusive language at workplace", synopsis: "Learn to use language that is respectful and inclusive of all individuals, regardless of background.", link: "https://drive.google.com/file/d/1PoSeG6htXf17ciiP0E-TBTbvxUEvN3DZ/view?usp=drive_link" },
+                { title: "Invisible Disability at the Workplace", synopsis: "Learn to foster an inclusive and supportive environment for colleagues with non-apparent disabilities.", link: "https://drive.google.com/file/d/1PgaP0jgco90i19ZGcFqLRZUhzD9M55QD/view?usp=drive_link" },
+                { title: "Mindfulness", synopsis: "Practice mindfulness techniques to reduce stress, improve focus, and enhance overall well-being.", link: "https://drive.google.com/file/d/1Pxv_HG17fHo5aQdwHwUVWhx2q-lyp6vo/view?usp=drive_link" },
+                { title: "Overcoming Your Unconscious Bias", synopsis: "Learn to recognize and mitigate the impact of unconscious bias in hiring and workplace decisions.", link: "https://drive.google.com/file/d/1Q16hefLk99IOlSJc-bRlTjkl1G_W4DSc/view?usp=drive_link" },
+                { title: "Being a Change-Maker", synopsis: "Learn how to initiate and lead positive change within your organization.", link: "https://drive.google.com/file/d/1PDitEDEe9O8_xwjAksWX-j5XHddRCNym/view?usp=sharing" },
+                { title: "Conflict Management", synopsis: "Learn how to manage and resolve conflicts in the workplace in a positive and productive way.", link: "https://drive.google.com/file/d/1POK5qGaAYHQFLKqrXt5lElQ3XP7zGzFn/view?usp=sharing" },
+                { title: "Dynamic Decision Making", synopsis: "Learn a structured process for making better, more informed decisions under pressure.", link: "https://drive.google.com/file/d/1TnaiDYYfnJPkI2tYrHig81JbZ3gnf7Fd/view?usp=drive_link" },
+                { title: "Effective Conflict Resolution Techniques", synopsis: "Master specific techniques for de-escalating conflict and finding mutually agreeable solutions.", link: "https://drive.google.com/file/d/1T1zThkGcwzj-PtOYqPnuhYpGjxJkxbSC/view" },
+                { title: "First Time Manager", synopsis: "A guide for new managers on how to transition into their role and lead their team effectively.", link: "https://drive.google.com/file/d/1T1zThkGcwzj-PtOYqPnuhYpGjxJkxbSC/view" },
+                { title: "Managing Conflict Of Interest At Workplace", synopsis: "Understand how to identify and manage potential conflicts of interest to maintain ethical standards.", link: "https://drive.google.com/file/d/1PvTxzVaTKD9bpsEJFvK4fM6ZT_xjKS3O/view?usp=drive_link" },
+                { title: "Meeting Management", synopsis: "Learn how to plan, run, and follow up on meetings to make them more productive and effective.", link: "https://drive.google.com/file/d/1Py4dbFn5ysDHQnctwe_Q7KqSLfiEDX_B/view?usp=sharing" },
+                { title: "Planning And Organizing", synopsis: "Develop effective strategies for planning projects, organizing tasks, and managing your time.", link: "https://drive.google.com/file/d/1Q1SYiUSblvycgY-UIhAbPLPwdH5VGb-F/view?usp=drive_link" },
+                { title: "Preparing For End Of Year Performance Conversation", synopsis: "Learn how to prepare for and conduct meaningful performance reviews with your team.", link: "https://drive.google.com/file/d/1Xo2ildLn1sEH_V0ak-LB0XPG1CmFeyTc/view?usp=drive_link" },
+                { title: "Project Management", synopsis: "Learn the fundamentals of project management, from planning and execution to monitoring and closure.", link: "https://drive.google.com/file/d/1TDXGW_EZKrU7IkVcLMXg4cAfEwPqvh6h/view?usp=drive_link" },
+                { title: "Mitigating Workplace Risk", synopsis: "Understand how to identify and mitigate potential risks to ensure a safe and secure work environment.", link: "https://drive.google.com/file/d/1T7bEhCQWhXjh78zlzmKpTySIFZp8Kq1Q/view?usp=drive_link" },
+                { title: "Teamwork", synopsis: "Learn the principles of effective teamwork and collaboration to achieve shared goals.", link: "https://drive.google.com/file/d/1TS2kZUURKMOTxnwSSG_OxxuklzVkyNLo/view?usp=drive_link" },
+                { title: "Unleash Your Motivation", synopsis: "Discover how to tap into your intrinsic motivation to stay driven and achieve your goals.", link: "https://drive.google.com/file/d/1TSNlFetJjIfZ7mykwiKzYz63iRD0Nfut/view?usp=drive_link" },
+                { title: "Compassionate Leadership", synopsis: "Learn to lead with empathy and compassion to build a more engaged and supportive team.", link: "https://drive.google.com/file/d/1PO-mtucbuSUjNV5iSEdL0pp05glHP_Db/view?usp=sharing" },
+                { title: "Data analysis and interpretation", synopsis: "Learn how to analyze data and translate it into actionable business insights.", link: "https://drive.google.com/file/d/1TeUK9l1U0aJoPxG1BEMoeuJRSESdQGV0/view?usp=drive_link" },
+                { title: "Data Analytics for Business", synopsis: "A practical guide to using data analytics to make smarter business decisions.", link: "https://drive.google.com/file/d/1XsGThzo5uInYIJtzUrqQ3aya03wr8kdI/view?usp=sharing" },
+                { title: "Leadership Styles To Enhance Productivity", synopsis: "Explore different leadership styles and learn how to apply them to maximize your team's productivity.", link: "https://drive.google.com/file/d/1PtTD6QSe0rU86FHutWkoZxWv0AVFk5qG/view?usp=drive_link" },
+                { title: "Strategic Planning", synopsis: "Learn how to develop and implement a strategic plan to guide your team and organization to success.", link: "https://drive.google.com/file/d/1TPWzebTNJ3VUoNMzj-GouMAfNkfGoyOZ/view?usp=drive_link" },
+                { title: "Aspire to Inspire", synopsis: "Discover how to become an inspirational leader who motivates and empowers others to achieve their best.", link: "https://drive.google.com/file/d/1PBu7vuD2FGJvmmxR2FBT3tZL4nU3WjF9/view?usp=sharing" },
+                { title: "Campus to Corporate", synopsis: "A guide for new graduates on how to successfully transition from university to the corporate world.", link: "https://drive.google.com/file/d/1PKy8pCatEDNqZVjfe2OQ3C3NPyAloBiQ/view?usp=sharing" },
+                { title: "Change Management", synopsis: "Learn how to effectively manage and lead teams through periods of organizational change.", link: "https://drive.google.com/file/d/1PKyv34_lxNGuguWwyNQDWE75qrVxqDke/view?usp=sharing" },
+                { title: "Cyber Security", synopsis: "Understand the fundamentals of cybersecurity and learn how to protect yourself and your organization from online threats.", link: "https://drive.google.com/file/d/1Thu3mSw8AbPUwne8UTL7Rbl_NBo8o8lg/view?usp=drive_link" },
+                { title: "Finance for Non-Finance", synopsis: "A practical introduction to financial concepts for professionals outside of the finance department.", link: "https://drive.google.com/file/d/1PeU7YkDx29hyd0PY_GSMXs0BizL8rYNm/view?usp=drive_link" },
+                { title: "Goal Setting", synopsis: "Learn how to set and achieve meaningful personal and professional goals.", link: "https://drive.google.com/file/d/1Pjzs8OWiIEE1PpBn-8sLTFjhE8lA_PdD/view" },
+                { title: "How to be an Ethical Leader", synopsis: "Understand the principles of ethical leadership and learn how to make decisions with integrity.", link: "https://drive.google.com/file/d/1Po4Iv3YrpODQuuR-C6w8sQQS83h-9RQj/view" },
+                { title: "Learning to Say No", synopsis: "Learn how to set boundaries and say no effectively to manage your time and priorities.", link: "https://drive.google.com/file/d/1Pt3tqdkTdTEz24FPQTsO56eJxx19DmoJ/view?usp=drive_link" },
+                { title: "Mastering The Art Of Receiving Feedback", synopsis: "Learn how to receive feedback gracefully and use it to accelerate your professional growth.", link: "https://drive.google.com/file/d/1Pv9kysWRPYqS9AI785s0JZ50k9LPqAmF/view?usp=drive_link" },
+                { title: "Meeting Etiquette", synopsis: "Master the rules of professional conduct for both in-person and virtual meetings.", link: "https://drive.google.com/file/d/1PyyIDYrESiYEUps5nzHrOV89h3oA1gAM/view?usp=drive_link" },
+                { title: "Setting Expectations At Workplace", synopsis: "Learn how to clearly define and manage expectations with your manager, colleagues, and team.", link: "https://drive.google.com/file/d/1TH-H-MpbP4pfhojr0mFc74vmBgA_WjXD/view?usp=drive_link" },
+                { title: "Sharpening the Saw", synopsis: "Based on Stephen Covey's 7 Habits, learn the importance of continuous self-renewal and improvement.", link: "https://drive.google.com/file/d/1TG2XsDBz8Q824S4kss2UrIcIfhr-RQAG/view?usp=drive_link" },
+                { title: "Workplace Etiquette", synopsis: "A comprehensive guide to professional etiquette in the modern workplace.", link: "https://drive.google.com/file/d/1TTyCwDMyIctY_KGwzlyTsWD-sohuXb1R/view?usp=drive_link" },
+                { title: "Workplace Health and Safety", synopsis: "Understand your role in maintaining a safe and healthy work environment for everyone.", link: "https://drive.google.com/file/d/1TZeyunbZOT1ICQ9tVMmg326r2Qhmnnyw/view?usp=drive_link" },
+                { title: "Decision Making Techniques", synopsis: "Explore various models and techniques for making more effective and rational decisions.", link: "https://drive.google.com/file/d/1ThCLQPzi3798wkJvQRKVXBDRzQBkW-zc/view?usp=drive_link" },
+                { title: "Effective Performance Feedback", synopsis: "Learn how to deliver performance feedback that is clear, constructive, and motivating.", link: "https://drive.google.com/file/d/1Pa2SeIzsmB35c2VOTIPrL6Q101G6KKMb/view?usp=drive_link" },
+                { title: "Leadership Attributes", synopsis: "Identify and develop the key attributes and qualities of effective leaders.", link: "https://drive.google.com/file/d/1PqnRDNMYkevIwUdGPqHWFIJFBZPwmTHC/view?usp=drive_link" },
+                { title: "Managing Team Dynamics", synopsis: "Learn to understand and manage the different personalities and dynamics within your team.", link: "https://drive.google.com/file/d/1Prl5YJbHU7V1Pok9rW4nhnNvWrfufGH-/view?usp=drive_link" },
+                { title: "Solving Problems As A Team", synopsis: "Learn collaborative problem-solving techniques to leverage the collective intelligence of your team.", link: "https://drive.google.com/file/d/1TMeyKD8ZEfSp_rkyAD77L4e191qc3QsW/view" },
+                { title: "Team Building- Fostering Collaboration And Success", synopsis: "Discover practical strategies and activities to build a more cohesive and collaborative team.", link: "https://drive.google.com/file/d/1TNUjDVwq-EnzPZ0W8cJsRcqrr0Jm6VWb/view?usp=drive_link" },
+                { title: "Business Process Improvement", synopsis: "Learn how to analyze and improve business processes to increase efficiency and reduce waste.", link: "https://drive.google.com/file/d/1PKomE0Gs_hkifKMqK_SetiqpMUBJZlNk/view?usp=sharing" },
+                { title: "Continuous Improvement through the PDSA Cycle", synopsis: "Master the Plan-Do-Study-Act cycle for systematic and continuous process improvement.", link: "https://drive.google.com/file/d/1PQLUFRCsEX1c86G6TJItTMsUbLgWUbQl/view?usp=sharing" },
+                { title: "Design Thinking for Innovation", synopsis: "Learn the human-centered design thinking process to create innovative solutions to complex problems.", link: "https://drive.google.com/file/d/1TlkLBxMll0JAZHscMDwWGlWMMGaLjHUK/view?usp=drive_link" },
+                { title: "Lean Management", synopsis: "Understand the principles of lean management to maximize value and minimize waste in your processes.", link: "https://drive.google.com/file/d/1PqS8lBpTvvGqCMeQHwYN9fgbKnvrmmkI/view" },
+                { title: "Quality Management", synopsis: "An introduction to the principles and practices of quality management and continuous improvement.", link: "https://drive.google.com/file/d/1TCiGE5twWs0ejICXNaUbqT1DErZbIWmP/view" },
+                { title: "Building Customer Loyalty", synopsis: "Learn strategies to turn satisfied customers into loyal advocates for your brand.", link: "https://drive.google.com/file/d/1PEJbYvsu0zTX1D5SZbHPox4w7pMTeWoN/view?usp=sharing" },
+                { title: "Effective Persuasion", synopsis: "Master the art of persuasion to influence others and gain buy-in for your ideas.", link: "https://drive.google.com/file/d/1P_DJzaponEpMrjGEcFFRvqGVcUmBjz79/view?usp=drive_link" },
+                { title: "Effective Sales Presentation", synopsis: "Learn how to create and deliver sales presentations that are compelling and close deals.", link: "https://drive.google.com/file/d/1P_9IiQpaBdXhzxt9L6ivcV9bqNqYeuUg/view?usp=drive_link" },
+                { title: "Essential Techniques for Negotiating a Sale", synopsis: "Learn key negotiation tactics and strategies specifically for sales professionals.", link: "https://drive.google.com/file/d/1PXF-SqeodZkuil8x5Lvdj4kEYekI7QOs/view?usp=drive_link" },
+                { title: "Mastering The Art Of Successful Negotiation", synopsis: "A comprehensive guide to the principles and practices of successful negotiation in any context.", link: "https://drive.google.com/file/d/1PtTLCiDX6k_nG-i1Y-LYGdHvCPkEzbk7/view?usp=drive_link" },
+                { title: "Objection Handling Skills For Sales Associate", synopsis: "A focused course for sales associates on how to effectively handle customer objections.", link: "https://drive.google.com/file/d/1Q-lcjgFDIU8CFG35fya9XR8-N8ZGj0T4/view?usp=drive_link" },
+                { title: "Overcoming Procrastination", synopsis: "Learn the causes of procrastination and develop strategies to overcome it and boost productivity.", link: "https://drive.google.com/file/d/1PzBZcm8J_triRjuFkPMTPra8cyH1sZpl/view?usp=drive_link" },
+                { title: "Storytelling In Sales", synopsis: "Learn how to use storytelling to connect with customers on an emotional level and make your sales message more memorable.", link: "https://drive.google.com/file/d/1TL2qKsyGgFX6EhSrZVxyW08cikBhWcTk/view?usp=drive_link" },
+                { title: "Transitioning from Salesperson to Sales Manager", synopsis: "A guide for new sales managers on how to lead and motivate a successful sales team.", link: "https://drive.google.com/file/d/1TTUY7vCRBhdUUdn3YH5fc8uRIRq6C8Cg/view?usp=drive_link" },
+                { title: "Action Planning", synopsis: "Learn how to turn goals and ideas into concrete action plans with clear steps and timelines.", link: "https://drive.google.com/file/d/1PAuaFWnA6wBUtjQEaiagMa6ody6x4j0y/view?usp=sharing" },
+                { title: "Assertiveness - The Key To Effective Communication", synopsis: "Discover how assertiveness can transform your communication and professional relationships.", link: "https://drive.google.com/file/d/1PAuaFWnA6wBUtjQEaiagMa6ody6x4j0y/view?usp=sharing" },
+                { title: "Being Proactive", synopsis: "Learn to take initiative and control of your work, rather than just reacting to events.", link: "https://drive.google.com/file/d/1PDuVNZCHQ-Q7110F7yj8k8mGJ2Hk1mWz/view?usp=sharing" },
+                { title: "Building Resilience", synopsis: "Develop the mental and emotional strength to bounce back from setbacks and thrive under pressure.", link: "https://drive.google.com/file/d/1PGGuZVZTp1y_oLEPAhf9dtT9_S6qe0ur/view?usp=sharing" },
+                { title: "Circle of Influence", synopsis: "Learn to focus your energy on what you can control to become more effective and less stressed.", link: "https://drive.google.com/file/d/1PL6JD9C0CkPharY4NxPxvRsHeURf0_cQ/view?usp=sharing" },
+                { title: "Critical Thinking Skills", synopsis: "Develop the ability to analyze information, identify biases, and make sound, reasoned judgments.", link: "https://drive.google.com/file/d/1PRJvMhTfgV4WIUzeuAFS4wEXBM8rPOM3/view?usp=sharing" },
+                { title: "Cultivating A Positive Attitude", synopsis: "Discover how to cultivate a positive mindset to improve resilience, motivation, and overall performance.", link: "https://drive.google.com/file/d/1TdM3r-poY5LdIWIe0CdEDegtK7nw23CN/view?usp=drive_link" },
+                { title: "Mastering Remote Working", synopsis: "Learn best practices for staying productive, connected, and engaged while working remotely.", link: "https://drive.google.com/file/d/1PvKl7eSnPL6sBenM4wsNTtCDzTgUNfax/view?usp=drive_link" },
+                { title: "Meeting 101 - Unleashing Productivity and Collaboration", synopsis: "A foundational guide to making meetings more productive, inclusive, and effective.", link: "https://drive.google.com/file/d/1Pz09rxTnkR_n_qdDgHDUjWt9aQH2anEC/view?usp=drive_link" },
+                { title: "Why And How To Stop Multi-Tasking", synopsis: "Understand the pitfalls of multitasking and learn strategies for focused, single-tasking to improve productivity and quality.", link: "https://drive.google.com/file/d/1TXXN1elk1f9tABRZELaSKyv0YkC0-Xoi/view?usp=drive_link" }
+            ];
 
-        const getRecsButton = document.getElementById('get-recs-button');
-        const challengeInput = document.getElementById('challenge-input');
-        const recommendationsResult = document.getElementById('recommendations-result');
-        const courseModal = document.getElementById('course-modal');
-        const closeModalButton = document.getElementById('close-modal');
+            const getRecsButton = document.getElementById('get-recs-button');
+            const challengeInput = document.getElementById('challenge-input');
+            const recommendationsResult = document.getElementById('recommendations-result');
+            const courseModal = document.getElementById('course-modal');
+            const closeModalButton = document.getElementById('close-modal');
+            const modalVideoIframe = document.getElementById('modal-video-iframe');
 
-        const openModal = (title, description, videoLink) => {
-            document.getElementById('modal-title').textContent = title;
-            document.getElementById('modal-description').textContent = description;
-            document.getElementById('modal-video-link').href = videoLink;
-            courseModal.classList.remove('hidden');
-        };
+            const openModal = (title, description, videoLink) => {
+                const embedUrl = videoLink.replace("/view?usp=sharing", "/preview").replace("/view", "/preview");
+                document.getElementById('modal-title').textContent = title;
+                document.getElementById('modal-description').textContent = description;
+                modalVideoIframe.src = embedUrl;
+                courseModal.classList.remove('hidden');
+            };
 
-        const closeModal = () => {
-            courseModal.classList.add('hidden');
-        };
+            const closeModal = () => {
+                courseModal.classList.add('hidden');
+                modalVideoIframe.src = ""; // Stop video playback
+            };
 
-        closeModalButton.addEventListener('click', closeModal);
-        courseModal.addEventListener('click', (event) => {
-            if (event.target === courseModal) {
-                closeModal();
-            }
-        });
+            closeModalButton.addEventListener('click', closeModal);
+            courseModal.addEventListener('click', (event) => {
+                if (event.target === courseModal) {
+                    closeModal();
+                }
+            });
 
-        recommendationsResult.addEventListener('click', (event) => {
-            const courseButton = event.target.closest('.course-button');
-            if (courseButton) {
-                const title = courseButton.dataset.title;
-                const description = courseButton.dataset.description;
-                const videoLink = courseButton.dataset.videoLink;
-                openModal(title, description, videoLink);
-            }
-        });
+            recommendationsResult.addEventListener('click', (event) => {
+                const courseButton = event.target.closest('.course-button');
+                if (courseButton) {
+                    const title = courseButton.dataset.title;
+                    const description = courseButton.dataset.description;
+                    const videoLink = courseButton.dataset.videoLink;
+                    openModal(title, description, videoLink);
+                }
+            });
 
-        getRecsButton.addEventListener('click', async () => {
-            const challenge = challengeInput.value;
-            if (!challenge.trim()) {
-                recommendationsResult.innerHTML = `<p class="text-red-500 text-center">Please enter a challenge first.</p>`;
-                return;
-            }
+            getRecsButton.addEventListener('click', async () => {
+                const challenge = challengeInput.value;
+                if (!challenge.trim()) {
+                    recommendationsResult.innerHTML = `<p class="text-red-500 text-center">Please enter a challenge first.</p>`;
+                    return;
+                }
 
-            recommendationsResult.innerHTML = '<div class="flex justify-center items-center"><div class="loader"></div></div>';
-            getRecsButton.disabled = true;
+                recommendationsResult.innerHTML = '<div class="flex justify-center items-center"><div class="loader"></div></div>';
+                getRecsButton.disabled = true;
 
-            const prompt = `
-                You are an expert corporate training advisor for Mikasa Ventures. A potential client has described a business challenge.
-                Based on their challenge, provide a JSON array of 3 to 4 objects. Each object should represent a relevant e-learning course and have the following properties: "courseTitle" and "courseDescription".
-                You MUST choose the course titles ONLY from the following list: ${courseTitles.join(", ")}.
-                The courseDescription should be a compelling, one-sentence objective for the course.
-                
-                Client's Challenge: "${challenge}"
-            `;
+                const courseListForPrompt = JSON.stringify(courseLibrary.map(c => ({ title: c.title, synopsis: c.synopsis })));
 
-            try {
-                let chatHistory = [{ role: "user", parts: [{ text: prompt }] }];
-                const payload = {
-                    contents: chatHistory,
-                    generationConfig: {
-                        responseMimeType: "application/json",
-                        responseSchema: {
-                            type: "ARRAY",
-                            items: {
-                                type: "OBJECT",
-                                properties: {
-                                    courseTitle: { type: "STRING" },
-                                    courseDescription: { type: "STRING" }
-                                },
-                                required: ["courseTitle", "courseDescription"]
+                const prompt = `
+                    You are an expert corporate training advisor for Mikasa Ventures. A potential client has described a business challenge.
+                    Based on their challenge, provide a JSON array of 3 to 4 objects. Each object should represent a relevant e-learning course and have the following properties: "courseTitle" and "courseDescription".
+                    You MUST choose the course titles ONLY from the provided course library. Analyze the user's query against both the title and the synopsis to find the best matches.
+                    The courseDescription should be a compelling, one-sentence objective for the course, which you will generate.
+                    
+                    Course Library: ${courseListForPrompt}
+                    
+                    Client's Challenge: "${challenge}"
+                `;
+
+                try {
+                    let chatHistory = [{ role: "user", parts: [{ text: prompt }] }];
+                    const payload = {
+                        contents: chatHistory,
+                        generationConfig: {
+                            responseMimeType: "application/json",
+                            responseSchema: {
+                                type: "ARRAY",
+                                items: {
+                                    type: "OBJECT",
+                                    properties: {
+                                        courseTitle: { type: "STRING" },
+                                        courseDescription: { type: "STRING" }
+                                    },
+                                    required: ["courseTitle", "courseDescription"]
+                                }
                             }
                         }
-                    }
-                };
-                const apiKey = ""; 
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
-                
-                const response = await fetch(apiUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-
-                if (!response.ok) {
-                    throw new Error(`API request failed with status ${response.status}`);
-                }
-
-                const result = await response.json();
-                
-                if (result.candidates && result.candidates.length > 0 &&
-                    result.candidates[0].content && result.candidates[0].content.parts &&
-                    result.candidates[0].content.parts.length > 0) {
-                    const jsonText = result.candidates[0].content.parts[0].text;
-                    const recommendedCourses = JSON.parse(jsonText);
+                    };
+                    const apiKey = ""; 
+                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
                     
-                    let html = '<h3 class="text-xl font-bold text-[#005A9C] mb-4 text-center">Here are some recommended courses:</h3><div class="space-y-3">';
-                    recommendedCourses.forEach(course => {
-                        const realLink = courseData[course.courseTitle] || "#";
-                        html += `<div class="bg-white p-4 rounded-lg shadow-md border border-gray-200 hover:shadow-lg hover:border-[#FCA311] transition-all duration-300 cursor-pointer course-button flex items-center justify-between"
-                                    data-title="${course.courseTitle}"
-                                    data-description="${course.courseDescription}"
-                                    data-video-link="${realLink}">
-                                    <span class="font-semibold text-gray-800">${course.courseTitle}</span>
-                                    <span class="text-[#005A9C] font-bold text-lg">›</span>
-                                 </div>`;
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
                     });
-                    html += '</div>';
-                    recommendationsResult.innerHTML = html;
 
-                } else {
-                    throw new Error("No recommendations found in the API response.");
+                    if (!response.ok) {
+                        throw new Error(`API request failed with status ${response.status}`);
+                    }
+
+                    const result = await response.json();
+                    
+                    if (result.candidates && result.candidates.length > 0 &&
+                        result.candidates[0].content && result.candidates[0].content.parts &&
+                        result.candidates[0].content.parts.length > 0) {
+                        const jsonText = result.candidates[0].content.parts[0].text;
+                        const recommendedCourses = JSON.parse(jsonText);
+                        
+                        let html = '<h3 class="text-xl font-bold text-[#005A9C] mb-4 text-center">Here are some recommended courses:</h3><div class="space-y-3">';
+                        recommendedCourses.forEach(course => {
+                            const courseInfo = courseLibrary.find(c => c.title === course.courseTitle);
+                            const realLink = courseInfo ? courseInfo.link : "#";
+                            html += `<div class="bg-white p-4 rounded-lg shadow-md border border-gray-200 hover:shadow-lg hover:border-[#FCA311] transition-all duration-300 cursor-pointer course-button flex items-center justify-between"
+                                        data-title="${course.courseTitle}"
+                                        data-description="${course.courseDescription}"
+                                        data-video-link="${realLink}">
+                                        <span class="font-semibold text-gray-800">${course.courseTitle}</span>
+                                        <span class="text-[#005A9C] font-bold text-lg">›</span>
+                                     </div>`;
+                        });
+                        html += '</div>';
+                        recommendationsResult.innerHTML = html;
+
+                    } else {
+                        throw new Error("No recommendations found in the API response.");
+                    }
+
+                } catch (error) {
+                    console.error("Error fetching recommendations:", error);
+                    recommendationsResult.innerHTML = `<p class="text-red-500 text-center">Sorry, we couldn't get recommendations at this time. Please try again later.</p>`;
+                } finally {
+                    getRecsButton.disabled = false;
                 }
-
-            } catch (error) {
-                console.error("Error fetching recommendations:", error);
-                recommendationsResult.innerHTML = `<p class="text-red-500 text-center">Sorry, we couldn't get recommendations at this time. Please try again later.</p>`;
-            } finally {
-                getRecsButton.disabled = false;
-            }
+            });
         });
     </script>
 </body>
